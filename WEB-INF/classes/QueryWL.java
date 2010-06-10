@@ -31,17 +31,18 @@ public class QueryWL extends HttpServlet {
 
   public void service( HttpServletRequest req, HttpServletResponse res )
     throws ServletException, IOException {
-    return;
 
     res.setContentType("text/plain");
     PrintWriter out = res.getWriter();
-    out.println("test");
 
     try {
       Context ctx = new InitialContext();
       MBeanHome home = (MBeanHome)ctx.lookup("weblogic.management.adminhome");
 
       ArrayList apps = new ArrayList();
+      if (req.getParameterValues("apps") != null) {
+        apps.addAll(Arrays.asList(req.getParameterValues("apps")));
+      }
 
       for(int i = 0; i < mTypes.length; i++ ) {
         Set beans = home.getMBeansByType( mTypes[i] );
@@ -52,7 +53,7 @@ public class QueryWL extends HttpServlet {
           WebLogicObjectName objectName = mbean.getObjectName();
           String mName = objectName.getName();
           if (apps.isEmpty() ||  apps.contains(mName)) {
-            out.println("NAME: "+mName);	       
+            out.println("NAME: "+mName);
 
             MBeanInfo mInfo = mbean.getMBeanInfo();
             MBeanAttributeInfo infos[] = mInfo.getAttributes();
@@ -77,11 +78,15 @@ public class QueryWL extends HttpServlet {
                 attString = "";
               }
 
-             try {
-                dd = Double.parseDouble(attString);
+              if (attString == "true")  { attString = "1";}
+              if (attString == "false") { attString = "0";}
+
+
+              try {
+                Double.parseDouble(attString);
                 out.println("Attrib: "+attName+"\tValue: "+attString);
-             }
-            catch (NumberFormatException exc) { } 
+              }
+              catch (NumberFormatException exc) { } 
             }
           }
         }
