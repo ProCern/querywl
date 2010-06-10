@@ -22,41 +22,6 @@ public class QueryWL extends HttpServlet {
     "WebAppComponentRuntime"
   };
 
-  String mAttribs[] = {
-    "JMSServersTotalCount",
-    "ConnectionsCurrentCount",
-    "ConnectionsHighCount",
-    "JMSServersHighCount",
-    "JMSServersCurrentCount",
-    "ConnectionsTotalCount",
-    "TransactionRolledBackAppTotalCount",
-    "TransactionRolledBackTimeoutTotalCount",
-    "TransactionRolledBackResourceTotalCount",
-    "TransactionRolledBackSystemTotalCount",
-    "TransactionTotalCount",
-    "TransactionAbandonedTotalCount",
-    "TransactionHeuristicsTotalCount",
-    "TransactionRolledBackTotalCount",
-    "TransactionCommittedTotalCount",
-    "SecondsActiveTotalCount",
-    "HeapSizeCurrent",
-    "Uptime",
-    "HeapFreePercent",
-    "HeapFreeCurrent",
-    "HeapSizeMax",
-    "MessagesLogged",
-    "RestartsTotalCount",
-    "OpenSocketsCurrentCount",
-    "InvalidLoginAttemptsTotalCount",
-    "ExecutionTimeLow",
-    "PoolMaxCapacity",
-    "ExecutionTimeHigh",
-    "ExecutionTimeAverage",
-    "ReloadTotalCount"
-  };
-
-
-  ArrayList attr = new ArrayList(Arrays.asList(mAttribs));
 
   public synchronized void init( ServletConfig config )
     throws ServletException {
@@ -66,15 +31,17 @@ public class QueryWL extends HttpServlet {
 
   public void service( HttpServletRequest req, HttpServletResponse res )
     throws ServletException, IOException {
+    return;
 
     res.setContentType("text/plain");
     PrintWriter out = res.getWriter();
+    out.println("test");
 
     try {
       Context ctx = new InitialContext();
       MBeanHome home = (MBeanHome)ctx.lookup("weblogic.management.adminhome");
 
-      ArrayList apps = new ArrayList(Arrays.asList(req.getParameterValues("apps")));
+      ArrayList apps = new ArrayList();
 
       for(int i = 0; i < mTypes.length; i++ ) {
         Set beans = home.getMBeansByType( mTypes[i] );
@@ -84,7 +51,7 @@ public class QueryWL extends HttpServlet {
           WebLogicMBean mbean = (WebLogicMBean)j.next();
           WebLogicObjectName objectName = mbean.getObjectName();
           String mName = objectName.getName();
-          if (apps.contains(mName)) {
+          if (apps.isEmpty() ||  apps.contains(mName)) {
             out.println("NAME: "+mName);	       
 
             MBeanInfo mInfo = mbean.getMBeanInfo();
@@ -110,7 +77,11 @@ public class QueryWL extends HttpServlet {
                 attString = "";
               }
 
-              out.println("Attrib: "+attName+"\tValue: "+attString);
+             try {
+                dd = Double.parseDouble(attString);
+                out.println("Attrib: "+attName+"\tValue: "+attString);
+             }
+            catch (NumberFormatException exc) { } 
             }
           }
         }
